@@ -17,7 +17,7 @@ export async function GET(request: Request) {
             no_telp: true,
             nomor: true,
             id: true,
-        }
+        },
       });
   
       // Ensure dataPengaduan exists before incrementing

@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     // Find petugas with the given username
     const petugas = await prisma.petugas.findUnique({
       where: { username },
+      include: {
+        divisi: true,
+      },
     });
 
     if (!petugas) {

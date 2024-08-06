@@ -11,6 +11,15 @@ export async function POST(request: Request) {
     // Extract relevant data from request body
     const { divisi_id, username, password, nama, no_telp } = reqBody;
 
+    const email = await prisma.petugas.findFirst({
+      where : {
+        username : username
+      }
+    })
+
+    if(email) return  NextResponse.json({ message: 'Username sudah ada'})
+    
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10); // Adjust salt rounds as needed
 
