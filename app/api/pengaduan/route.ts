@@ -103,7 +103,8 @@ export async function GET(request: NextRequest) {
     const allPengaduan = await prisma.pengaduan.findMany({
       include: {
         jenis_aduan: true,
-        petugas: true,
+        petugas : true,
+        petugas_selesai : true,
         pelanggan: true,
       },
       where: {
