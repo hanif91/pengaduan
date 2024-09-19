@@ -24,7 +24,13 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ data: petugasDivisi });
     }
     catch (error) {
-        return NextResponse.json({ error: true, message: "failed to get petugas divisi" });
+        const finalError = {
+            rescode : 400,
+            success : false,
+            message : error,
+          } 
+          
+          return NextResponse.json(finalError,{status : 400})    
     }
     finally {
         prismaClient.$disconnect();
