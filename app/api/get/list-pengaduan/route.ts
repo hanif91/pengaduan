@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       if (!dataPengaduan) {
         return NextResponse.json({ message: 'No pengaduan records found' }, { status: 404 });
       }
-  
+      console.log(dataPengaduan);
       return NextResponse.json({ data: dataPengaduan });
     } catch (error) {
       console.error('Error fetching and incrementing nomor:', error);
