@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const reqBody = await request.json();
 
     const { selectedPeriod } = reqBody;
+   
     console.log("selectedPeriod", selectedPeriod)
 
     let returnedData:any;

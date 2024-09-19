@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         break;
       case 'semua_data':
         additionalWhere = {
-          id: { not: null }
+         
         }
       default:
       // Handle default case if no filter type is provided
@@ -124,6 +124,8 @@ export async function GET(request: NextRequest) {
         penugasan: {
           ...additionDivisiCondition,
         }
+      }, orderBy: {
+        created_at: 'desc'
       }
     })
 

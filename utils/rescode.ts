@@ -46,4 +46,13 @@ export const resultCode = (code: number, message?: string) => {
             message: "Gagal request, sertakan parameter pengaduanId untuk request ini"
         }
     }
+
+    else if(code === 215) {
+        return {
+            rescode: 214,
+            message: "Gagal request, sertakan parameter divisiId untuk request ini"
+        }
+    }
+
+    
 }

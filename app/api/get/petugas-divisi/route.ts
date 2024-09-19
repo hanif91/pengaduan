@@ -7,19 +7,24 @@ export async function GET(request: NextRequest) {
     try {
         const urlSearchParams = request.nextUrl.searchParams;
         const divisiId = urlSearchParams.get('divisiId')!;
-        if (divisiId === null) return NextResponse.json({code: 219, message: 'tambahkan parameter divisiId untuk set ID divisi'})
+        if (divisiId === null) return NextResponse.json({ code: 219, message: 'tambahkan parameter divisiId untuk set ID divisi' })
         const petugasDivisi = await prismaClient.petugas.findMany({
             where: {
-                divisi_id: parseInt(divisiId)
+                divisi_id: parseInt(divisiId),
+                AND: {
+                    role: {
+                        not: 'Kepala'
+                    }
+                }
             }
         })
 
-        if(petugasDivisi.length <= 0) return NextResponse.json({code: 221, message: `tidak ada divisi dengan ID ${divisiId}`})
+        if (petugasDivisi.length <= 0) return NextResponse.json({ code: 221, message: `tidak ada divisi dengan ID ${divisiId}` })
 
-        return NextResponse.json({data: petugasDivisi});
+        return NextResponse.json({ data: petugasDivisi });
     }
-    catch(error) {
-        return NextResponse.json({error: true, message: "failed to get petugas divisi"});
+    catch (error) {
+        return NextResponse.json({ error: true, message: "failed to get petugas divisi" });
     }
     finally {
         prismaClient.$disconnect();

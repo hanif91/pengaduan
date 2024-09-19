@@ -12,9 +12,9 @@ export async function POST(request: Request) {
   const prisma = new PrismaClient();
 
   try {
-    
+
     const formData: any = await request.formData();
-    console.log("form data: ", isNumber(formData.get("pengaduanId")) )
+    // console.log("form data: ", isNumber(formData.get("pengaduanId")))
 
     const pengaduanId = formData.get("pengaduanId")
     const petugasId = formData.get("petugasId")
@@ -24,22 +24,25 @@ export async function POST(request: Request) {
     const diameterId = formData.get("diameterId")
 
     const pengaduanData = await prisma.pengaduan.findUnique({
-        where: {
-            id: parseInt(pengaduanId),
-            is_processed: true
-        }
+      where: {
+        id: parseInt(pengaduanId),
+        is_processed: true
+      }
     })
+    console.log(pengaduanData)
 
-    if(!pengaduanData) {
-        return NextResponse.json({ 
-            message: 'Error, pengaduan belum di proses, tidak bisa di selesaikan', 
-            error: 'Failed to edit because the data not processed by administrator'}, 
-            {status: 500}
-        )
-        
+    if (!pengaduanData) {
+      return NextResponse.json({
+        message: 'Error, pengaduan belum di proses, tidak bisa di selesaikan',
+        error: 'Failed to edit because the data not processed by administrator'
+      },
+        { status: 500 }
+      )
+
     }
 
-    
+
+
     // Upload foto penyelesaian to Firebase Storage
     const storage = getStorage(app);
     const storageRef = ref(storage, `images-penyelesaian-${pengaduanId}-petugas-${petugasId}.jpeg`);
@@ -47,15 +50,100 @@ export async function POST(request: Request) {
     // 'file' comes from the Blob or File API
 
     const uploadTask = uploadBytes(storageRef, fotoPenyelesaian).then((snapshot) => {
-                        console.log('Uploaded a blob or file!');
-                        });
+      console.log('Uploaded a blob or file!');
+    });
 
     // Await upload completion
     await uploadTask;
 
     const photoUrl = await getDownloadURL(storageRef); // Get foto penyelesaian URL
 
+
     // Update pengaduan
+    // const updatedPengaduan = await prisma.penugasan_pengaduan.update({
+    //   where: {
+    //     id: parseInt(pengaduanId), // This will filter by pengaduanId
+    //   },
+    //   include: {
+    //     penugasan: {
+    //       include: {
+    //         divisi: {
+    //           include: {
+    //             petugas: {
+    //               where: {
+    //                 role: 'Kepala',
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //     pengaduan: {
+    //       select: {
+    //         id: true,
+    //       },
+    //     },
+    //   },
+    //   data: {
+    //     foto_penyelesaian: photoUrl,
+    //     is_complete: true,
+    //     completed_at: new Date(),
+    //     ket_selesai: keteranganSelesain,
+    //     jenis_penyelesaian_id: parseInt(jenisPenyelesaianId),
+    //     updated_at: new Date(),
+    //     petugas_id: parseInt(petugasId),
+    //     diameter_id: parseInt(diameterId),
+    //   },
+    // });
+
+    // const updatedPengaduan = await prisma.pengaduan.update({
+    //   where: { id: parseInt(pengaduanId) },
+    //   data: {
+    //     foto_penyelesaian: photoUrl,
+    //     is_complete: true,
+    //     completed_at: new Date(),
+    //     ket_selesai: keteranganSelesain,
+    //     jenis_penyelesaian_id: parseInt(jenisPenyelesaianId),
+    //     updated_at: new Date(),
+    //     petugas_id: parseInt(petugasId),
+    //     diameter_id: parseInt(diameterId),
+    //   }, include: {
+    //     jenis_aduan: {
+    //       select: {
+    //         id : true,
+    //         nama: true,
+    //       }
+    //     },
+    //     jenis_penyelesaian : {
+    //       select : {
+    //         id: true,
+    //         nama_penyelesaian : true,
+    //       }
+    //     },
+    //     petugas: {
+    //       select : {
+    //         id: true,
+    //         nama: true
+    //       }
+    //     },
+    //     penugasan_pengaduan: {
+    //       select: {
+    //         penugasan: {
+    //           select: {
+    //             divisi: {
+    //               select: {
+    //                 petugas: {
+    //                   where: { role: 'Kepala' },
+    //                 },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   }
+    // });
+    // console.log('dsfsfsfs');
     const updatedPengaduan = await prisma.pengaduan.update({
       where: { id: parseInt(pengaduanId) },
       data: {
@@ -69,8 +157,47 @@ export async function POST(request: Request) {
         diameter_id: parseInt(diameterId),
       },
     });
+    console.log(updatedPengaduan)
 
-    return NextResponse.json({ message: 'Success menyelesaikan pengaduan', data: updatedPengaduan }, { status: 200 });
+
+    
+
+    if (!updatedPengaduan) {
+      return NextResponse.json({
+        message: "Gagal Menyelesaikan Pengaduan",
+        error: 'Gagal Menyelesaikan Pengaduan'
+      },
+        { status: 500 }
+      )
+    }
+
+    const dataPenyelesaian = await prisma.pengaduan.findUnique({
+      where: { id: parseInt(pengaduanId) },
+      include: {
+        jenis_aduan: true,
+        petugas: true,
+        pelanggan: true,
+        jenis_penyelesaian: true,
+        penugasan_pengaduan: {
+          select: {
+            penugasan: {
+              select: {
+                divisi: {
+                  select: {
+                    petugas: {
+                      where: { role: 'Kepala' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+
+    return NextResponse.json({ message: 'Success menyelesaikan pengaduan', data: dataPenyelesaian }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: 'Failed to menyelesaikan pengaduan' }, { status: 500 });
@@ -83,17 +210,17 @@ export async function GET(request: NextRequest) {
   const prisma = new PrismaClient();
 
   try {
-    const urlSearchParams = request.nextUrl.searchParams;``
+    const urlSearchParams = request.nextUrl.searchParams; ``
     const month = urlSearchParams.get('month');
     console.log("month:", month)
-    const year = urlSearchParams.get('year');``
+    const year = urlSearchParams.get('year'); ``
     console.log("year:", year)
     const filter = urlSearchParams.get('filter')
 
-    if(month === null || year === null) {
-      return NextResponse.json({...resultCode(212)}, )
+    if (month === null || year === null) {
+      return NextResponse.json({ ...resultCode(212) },)
     }
-    
+
     const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
     const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 1);
     const completedPengaduan = await prisma.pengaduan.findMany({

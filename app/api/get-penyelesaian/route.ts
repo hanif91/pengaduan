@@ -12,18 +12,60 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({...resultCode(214)}, { status: 200 })
       }
 
+      // const dataPenyelesaian = await prisma.pengaduan.findUnique({
+      //   include: {
+      //       jenis_aduan: true,
+      //       petugas: true,
+      //       pelanggan: true,
+      //       jenis_penyelesaian: true,
+      //       penugasan_pengaduan: {
+      //         select : {
+      //           penugasan : {
+      //             select : {
+      //               divisi: {
+      //                 select : {
+      //                   petugas: {
+      //                     where : {
+      //                       role :  'Kepala'}
+      //                     }
+      //                   }
+      //                 }
+      //               }
+      //             }
+      //           }
+      //         }
+      //       }
+      //       // petugas_pengaduan_processed_byTopetugas: true
+      //   },
+      //   where: {
+      //       id: parseInt(pengaduanId)
+      //   },
+      // });
       const dataPenyelesaian = await prisma.pengaduan.findUnique({
+        where: { id: parseInt(pengaduanId) },
         include: {
-            jenis_aduan: true,
-            petugas: true,
-            pelanggan: true,
-            jenis_penyelesaian: true,
-            petugas_pengaduan_processed_byTopetugas: true
-        },
-        where: {
-            id: parseInt(pengaduanId)
+          jenis_aduan: true,
+          petugas: true,
+          pelanggan: true,
+          jenis_penyelesaian: true,
+          penugasan_pengaduan: {
+            select: {
+              penugasan: {
+                select: {
+                  divisi: {
+                    select: {
+                      petugas: {
+                        where: { role: 'Kepala' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
+  
   
       if(dataPenyelesaian?.is_complete === false) {
         return NextResponse.json({code: 216, message: 'Gagal get data, karena pengaduan belum di selesaikan'})
